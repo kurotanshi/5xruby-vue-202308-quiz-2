@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+import search from './components/search.vue'
 
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
@@ -112,9 +113,8 @@ const keywordsHighlight = (text, keyword) => {
 
 <template>
   <div class="app">
-    <p>
-      站點名稱搜尋: <input type="text" class="border" v-model="searchText">
-    </p>
+    
+    <search :text="searchText" @update="(val) => searchText = val"></search>
 
     <table class="table table-striped">
       <thead>
