@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+// import '@fortawesome/fontawesome-free/css/all.css';
 import search from './components/search.vue';
 import uBikeTable from './components/uBikeTable.vue';
 import pagination from './components/pagination.vue';

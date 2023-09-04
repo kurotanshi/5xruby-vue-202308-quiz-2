@@ -67,3 +67,10 @@ const setPage = page => {
         </ul>
     </nav>
 </template>
+
+<style lang="scss" scoped>
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+</style>
