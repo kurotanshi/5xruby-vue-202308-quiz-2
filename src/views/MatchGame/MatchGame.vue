@@ -10,6 +10,7 @@ import { ref } from 'vue';
 
 const cards = ref([]);
 const openedCard = ref([]);
+const isMatchedCards = ref(0);
 
 // 遊戲初始化，洗牌
 const gameInit = () => {
@@ -17,15 +18,33 @@ const gameInit = () => {
   numArr.sort(() => Math.random() - 0.5);
   cards.value = numArr.map(d => (d % 8) + 1);
   openedCard.value = [];
+  isMatchedCards.value = 0;
 }
 
-const clickHandler = (idx) => {    
-  openedCard.value.push(idx);
-  
+const clickHandler = (n, idx) => {
+  openedCard.value.push(idx); //將目前開啟的卡片的index 存入
+  //console.log(n);
+
+
   // 一秒後將 openedCard 清空 (牌面覆蓋回去)
   window.setTimeout(() => {
+    if (openedCard.value.length == 2) {
+      if (cards.value[openedCard.value[0]] === cards.value[openedCard.value[1]]) {
+        console.log('找到了');
+        //cards.value.find(cards.value[openedCard.value[0]])
+        cards.value[openedCard.value[0]] = -1;
+        isMatchedCards.value++;
+        cards.value[openedCard.value[1]] = -1;
+        isMatchedCards.value++;
+        if(isMatchedCards.value === cards.value.length){
+          let result = confirm('恭喜破關，再來一局？');
+          if(result) gameInit();
+        }
+      }
+
+    }
     openedCard.value = [];
-  }, 3000);
+  }, 2000);
 }
 </script>
 
@@ -34,22 +53,17 @@ const clickHandler = (idx) => {
 
     <div class="my-10 text-white text-center ">
       <div class="mb-8 text-5xl">五倍對對碰</div>
-      <button 
-        @click="gameInit"
+      <button @click="gameInit"
         class="rounded font-bold bg-blue-500 mx-6 text-white py-2 px-4 hover:bg-blue-700">開始</button>
     </div>
 
     <div class="rounded-xl mx-auto border-4 mt-12 grid grid-flow-col p-10 w-[900px] gap-2 grid-rows-4">
-      
-      <div 
-        v-for="(n, idx) in cards"
-        class="flip-card"
-        :class="{
-          'open': openedCard.includes(idx)
-        }"
-        @click="clickHandler(idx)">
+
+      <div v-for="(n, idx) in cards" class="flip-card" :class="{
+        'open': openedCard.includes(idx)
+      }" @click="clickHandler(n, idx)">
         <div class="flip-card-inner" v-if="cards[idx] > 0">
-          {{ cards[idx] }}
+          {{ idx + ',' + cards[idx] }}
           <div class="flip-card-front"></div>
           <div class="flip-card-back">
             <img :src="`./img/cat-0${n}.jpg`" alt="">
