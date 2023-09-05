@@ -25,7 +25,7 @@ const clickHandler = (idx) => {
   // 一秒後將 openedCard 清空 (牌面覆蓋回去)
   window.setTimeout(() => {
     openedCard.value = [];
-  }, 1000);
+  }, 3000);
 }
 </script>
 
@@ -49,6 +49,7 @@ const clickHandler = (idx) => {
         }"
         @click="clickHandler(idx)">
         <div class="flip-card-inner" v-if="cards[idx] > 0">
+          {{ cards[idx] }}
           <div class="flip-card-front"></div>
           <div class="flip-card-back">
             <img :src="`./img/cat-0${n}.jpg`" alt="">
