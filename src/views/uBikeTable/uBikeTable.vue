@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+import search from './components/search.vue';
+import pagination from './components/pagination.vue';
 
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
@@ -87,13 +89,7 @@ const pagerAddAmount = computed(() => {
       ? totalPageCount.value - PAGINATION_MAX
       : tmp;
 });
-// 換頁
-const setPage = page => {
-  if (page < 1 || page > totalPageCount.value) {
-    return;
-  }
-  currentPage.value = page;
-};
+
 // 指定排序
 const setSort = sortType => {
   if (sortType === currentSort.value) {
@@ -108,13 +104,22 @@ const keywordsHighlight = (text, keyword) => {
   const reg = new RegExp(keyword, 'gi');
   return text.replace(reg, `<span style="color: red;">${keyword}</span>`);
 };
+
+const searchBikeUpdate = ({searchKey}) => {  
+  console.log("enter searchBikeUpdate");
+  searchText.value = searchKey;  
+};
+
+const setPageUpdate = ({currentPageKey}) => {
+  currentPage.value = currentPageKey;
+};
+
 </script>
 
 <template>
   <div class="app">
-    <p>
-      站點名稱搜尋: <input type="text" class="border" v-model="searchText">
-    </p>
+
+    <search @searchBikeEvt="searchBikeUpdate"/>
 
     <table class="table table-striped">
       <thead>
@@ -163,23 +168,12 @@ const keywordsHighlight = (text, keyword) => {
     </table>
   </div>
 
-  <!-- 頁籤 -->
-  <nav v-if="pagerEnd > 0">
-    <ul class="pagination">
-      <li @click.prevent="setPage(currentPage - 1)" class="page-item">
-        <a class="page-link" href>Previous</a>
-      </li>
+  <pagination @setPageEvt="setPageUpdate"
+  :pagerEnd="pagerEnd" 
+  :currentPage="currentPage"
+  :pagerAddAmount="pagerAddAmount"
+   />
 
-      <li v-for="i in pagerEnd" :class="{ active: i + pagerAddAmount === currentPage }" :key="i"
-        @click.prevent="setPage(i + pagerAddAmount)" class="page-item">
-        <a class="page-link" href>{{ i + pagerAddAmount }}</a>
-      </li>
-
-      <li @click.prevent="setPage(currentPage + 1)" class="page-item">
-        <a class="page-link" href>Next</a>
-      </li>
-    </ul>
-  </nav>
 </template>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 // 試完成以下功能：
 //  1. 點擊卡片，卡片會翻開 (已完成)
@@ -11,6 +11,9 @@ import { ref } from 'vue';
 const cards = ref([]);
 const openedCard = ref([]);
 
+let try_count = 0;   // 嘗試次數
+const opened_his = ref([]);
+
 // 遊戲初始化，洗牌
 const gameInit = () => {
   const numArr = [...new Array(16).keys()].map(i => ++i);
@@ -20,13 +23,66 @@ const gameInit = () => {
 }
 
 const clickHandler = (idx) => {    
+
+  try_count++;
   openedCard.value.push(idx);
+  opened_his.value.push(idx);
+
+  if (openedCard.value.length >= 16) {
+
+    window.setTimeout(() => {
+      alert('恭喜破關，再來一局？');
+
+      const numArr = [...new Array(16).keys()].map(i => ++i);
+      numArr.sort(() => Math.random() - 0.5);
+      cards.value = numArr.map(d => (d % 8) + 1);
+      openedCard.value = [];    
+      opened_his.value = [];
+    }, 2000);
+        
+  }
   
   // 一秒後將 openedCard 清空 (牌面覆蓋回去)
-  window.setTimeout(() => {
-    openedCard.value = [];
-  }, 1000);
+  // window.setTimeout(() => {
+  //   openedCard.value = [];
+  // }, 1000);
+
+  // console.log("opened_his.value is: " + opened_his.value);
+  // console.log("opened_his.length is: " + opened_his.value.length);
+  // console.log(opened_his.value[opened_his.value.length - 2]);
+
+  // 翻同一張, 牌面覆蓋回去
+  if (opened_his.value[opened_his.value.length - 2] === idx) {
+
+    window.setTimeout(() => {
+      opened_his.value.pop();
+      opened_his.value.pop();
+
+      openedCard.value = [... opened_his.value];  
+
+    }, 1000);    
+
+  } else if (cards.value[ opened_his.value[opened_his.value.length - 2] ] != cards.value[idx] && try_count % 2 === 0) {
+
+    window.setTimeout(() => {
+      opened_his.value.pop();
+      opened_his.value.pop();
+
+      // ??? 不加 ... 會錯亂, 觀察 push 到 openedCard 的, 也會到 opened_his 算到 2 次
+      openedCard.value = [... opened_his.value];  
+
+    }, 1000);
+
+  } 
+
+  console.log("openedCard's length is: " + openedCard.value.length);
+
 }
+
+const showFinishMsg = () => {
+    alert("恭喜破關，再來一局");
+}
+
 </script>
 
 <template>
@@ -55,7 +111,7 @@ const clickHandler = (idx) => {
           </div>
         </div>
       </div>
-
+      
     </div>
   </div>
 </template>
