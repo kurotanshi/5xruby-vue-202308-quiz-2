@@ -33,7 +33,7 @@
       </thead>
       <tbody>
         <!-- 替換成 slicedUbikeStops -->
-        <tr v-for="s in sliceUbike" :key="s.sno">
+        <tr v-for="s in slicedUbikeStops" :key="s.sno">
           <td>{{ s.sno }}</td>
           <!-- <td>{{ s.sna }}</td> -->
           <td v-html="keywordsHighlight(s.sna, search)"></td>
@@ -46,7 +46,7 @@
     </table>
 </template>
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 
 const props =defineProps({
     slicedUbikeStops:Object,
@@ -55,10 +55,8 @@ const props =defineProps({
     searchText: String
 })
 
-const emit =defineEmits(['desc','current'])
+const emit =defineEmits(['desc'])
 
-
-const sliceUbike = computed(()=>props.slicedUbikeStops)
 const search = computed(()=>props.searchText)
 
 // 關鍵字 Highlight
@@ -74,3 +72,6 @@ const timeFormat = (val) => {
 };
 
 </script>
+<style>
+
+</style>
