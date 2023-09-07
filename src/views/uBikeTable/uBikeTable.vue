@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+import Search from './components/Search.vue';
+import UBikeTable from './components/UBikeTable.vue';
+import Pagination from './components/Pagination.vue';
 
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
@@ -34,11 +37,7 @@ fetch('https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediat
   .then(data => {
     uBikeStops.value = JSON.parse(data);
   });
-const timeFormat = (val) => {
-  // 時間格式
-  const pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-  return val.replace(pattern, '$1/$2/$3 $4:$5:$6');
-};
+
 // 監聽搜尋文字，若有變動則將頁碼歸 1
 watch(searchText, () => {
   currentPage.value = 1;
@@ -69,136 +68,51 @@ const slicedUbikeStops = computed(() => {
 const totalPageCount = computed(() => {
   return Math.ceil(filtedUbikeStops.value.length / COUNT_OF_PAGE);
 });
-// 分頁的尾端
-const pagerEnd = computed(() => {
-  return totalPageCount.value <= PAGINATION_MAX
-    ? totalPageCount.value
-    : PAGINATION_MAX;
-});
-// 分頁的位移，用來確保目前的頁碼在中間
-const pagerAddAmount = computed(() => {
-  const tmp =
-    totalPageCount.value <= PAGINATION_MAX
-      ? 0
-      : currentPage.value + 4 - pagerEnd.value;
-  return tmp <= 0
-    ? 0
-    : totalPageCount.value - (PAGINATION_MAX + tmp) < 0
-      ? totalPageCount.value - PAGINATION_MAX
-      : tmp;
-});
-// 換頁
-const setPage = page => {
-  if (page < 1 || page > totalPageCount.value) {
-    return;
-  }
-  currentPage.value = page;
+
+const handleSearchText = (text)=> {
+  searchText.value = text;
 };
-// 指定排序
-const setSort = sortType => {
-  if (sortType === currentSort.value) {
-    isSortDesc.value = !isSortDesc.value;
-  } else {
-    currentSort.value = sortType;
-    isSortDesc.value = false;
-  }
+const handleCurrentSort = (sortStr)=> {
+  currentSort.value = sortStr;
 };
-// 關鍵字 Highlight
-const keywordsHighlight = (text, keyword) => {
-  const reg = new RegExp(keyword, 'gi');
-  return text.replace(reg, `<span style="color: red;">${keyword}</span>`);
+const handleIsSortDesc = (boolean)=> {
+  isSortDesc.value = boolean;
+};
+const handleCurrentPage = (pageNum)=> {
+  currentPage.value = pageNum;
 };
 </script>
 
 <template>
   <div class="app">
     <p>
-      站點名稱搜尋: <input type="text" class="border" v-model="searchText">
+      站點名稱搜尋: <Search :searchText="searchText" @searchText="handleSearchText"/>
     </p>
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th @click="setSort('sno')">
-            #
-            <span v-show="currentSort === 'sno'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th>
-            場站名稱
-          </th>
-          <th>
-            場站區域
-          </th>
-          <th @click="setSort('sbi')" class="pointer">
-            目前可用車輛
-            <span v-show="currentSort === 'sbi'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th @click="setSort('tot')" class="pointer">
-            總停車格
-            <span v-show="currentSort === 'tot'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th>
-            資料更新時間
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 替換成 slicedUbikeStops -->
-        <tr v-for="s in slicedUbikeStops" :key="s.sno">
-          <td>{{ s.sno }}</td>
-          <!-- <td>{{ s.sna }}</td> -->
-          <td v-html="keywordsHighlight(s.sna, searchText)"></td>
-          <td>{{ s.sarea }}</td>
-          <td>{{ s.sbi }}</td>
-          <td>{{ s.tot }}</td>
-          <td>{{ timeFormat(s.mday) }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <UBikeTable
+      :countOfPage="COUNT_OF_PAGE"
+      :currentPage="currentPage"
+      :currentSort="currentSort"
+      :isSortDesc="isSortDesc"
+      :searchText="searchText"
+      :uBikeStops="slicedUbikeStops"
+      @currentSort="handleCurrentSort"
+      @isSortDesc="handleIsSortDesc"
+    />
   </div>
 
   <!-- 頁籤 -->
-  <nav v-if="pagerEnd > 0">
-    <ul class="pagination">
-      <li @click.prevent="setPage(currentPage - 1)" class="page-item">
-        <a class="page-link" href>Previous</a>
-      </li>
+  <Pagination 
+    :currentPage="currentPage"
+    :totalPageCount="totalPageCount"
+    :paginationMax="PAGINATION_MAX"
+    @currentPage="handleCurrentPage"
+  />
 
-      <li v-for="i in pagerEnd" :class="{ active: i + pagerAddAmount === currentPage }" :key="i"
-        @click.prevent="setPage(i + pagerAddAmount)" class="page-item">
-        <a class="page-link" href>{{ i + pagerAddAmount }}</a>
-      </li>
-
-      <li @click.prevent="setPage(currentPage + 1)" class="page-item">
-        <a class="page-link" href>Next</a>
-      </li>
-    </ul>
-  </nav>
 </template>
 
 <style lang="scss" scoped>
 .app {
   padding: 1rem;
-}
-.pointer {
-  cursor: pointer;
-}
-.pagination {
-  display: flex;
-  justify-content: center;
-}
-@media (max-width: 768px) {
-  .sno {
-    max-width: 50px; word-wrap: break-word;
-  }
-  .table td, .table th {
-    padding: .5rem .25rem;
-  }
 }
 </style>
