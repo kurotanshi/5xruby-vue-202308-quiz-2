@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+import Search from "./components/search.vue";
 
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
@@ -49,6 +50,11 @@ const filtedUbikeStops = computed(() => {
     ? []
     : uBikeStops.value.filter(d => d.sna.includes(searchText.value));
 });
+
+const search = (val) =>{
+  searchText.value = val
+}
+
 // 排序後的站點資料
 const sortedUbikeStops = computed(() => {
   const filtedStops = [...filtedUbikeStops.value];
@@ -115,6 +121,7 @@ const keywordsHighlight = (text, keyword) => {
     <p>
       站點名稱搜尋: <input type="text" class="border" v-model="searchText">
     </p>
+    <Search :searchText="searchText"  @update="search"/>
 
     <table class="table table-striped">
       <thead>
