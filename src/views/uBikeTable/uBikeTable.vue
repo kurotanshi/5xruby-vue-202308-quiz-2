@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
+import Search from "./components/search.vue";
+import TableData from "./components/uBikeTable.vue";
+import Page from "./components/pagination.vue";
 
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
@@ -49,6 +52,11 @@ const filtedUbikeStops = computed(() => {
     ? []
     : uBikeStops.value.filter(d => d.sna.includes(searchText.value));
 });
+
+const search = (val) =>{
+  searchText.value = val
+}
+
 // 排序後的站點資料
 const sortedUbikeStops = computed(() => {
   const filtedStops = [...filtedUbikeStops.value];
@@ -56,6 +64,7 @@ const sortedUbikeStops = computed(() => {
     ? filtedStops.sort((a, b) => b[currentSort.value] - a[currentSort.value])
     : filtedStops.sort((a, b) => a[currentSort.value] - b[currentSort.value]);
 });
+
 // 分頁後的站點資料
 const slicedUbikeStops = computed(() => {
   const start = (currentPage.value - 1) * COUNT_OF_PAGE;
@@ -65,6 +74,8 @@ const slicedUbikeStops = computed(() => {
       : sortedUbikeStops.value.length;
   return sortedUbikeStops.value.slice(start, end);
 });
+
+
 // 總頁數
 const totalPageCount = computed(() => {
   return Math.ceil(filtedUbikeStops.value.length / COUNT_OF_PAGE);
@@ -103,83 +114,17 @@ const setSort = sortType => {
     isSortDesc.value = false;
   }
 };
-// 關鍵字 Highlight
-const keywordsHighlight = (text, keyword) => {
-  const reg = new RegExp(keyword, 'gi');
-  return text.replace(reg, `<span style="color: red;">${keyword}</span>`);
-};
 </script>
 
 <template>
   <div class="app">
-    <p>
-      站點名稱搜尋: <input type="text" class="border" v-model="searchText">
-    </p>
+    <Search :searchText="searchText"  @update="search"/>
+    <TableData :slicedUbikeStops="slicedUbikeStops" :isSortDesc="isSortDesc" :currentSort="currentSort" :searchText="searchText" @desc="setSort"   />
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th @click="setSort('sno')">
-            #
-            <span v-show="currentSort === 'sno'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th>
-            場站名稱
-          </th>
-          <th>
-            場站區域
-          </th>
-          <th @click="setSort('sbi')" class="pointer">
-            目前可用車輛
-            <span v-show="currentSort === 'sbi'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th @click="setSort('tot')" class="pointer">
-            總停車格
-            <span v-show="currentSort === 'tot'">
-              <i class="fa" :class="isSortDesc ? 'fa-sort-desc' : 'fa-sort-asc'" aria-hidden="true"></i>
-            </span>
-          </th>
-          <th>
-            資料更新時間
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 替換成 slicedUbikeStops -->
-        <tr v-for="s in slicedUbikeStops" :key="s.sno">
-          <td>{{ s.sno }}</td>
-          <!-- <td>{{ s.sna }}</td> -->
-          <td v-html="keywordsHighlight(s.sna, searchText)"></td>
-          <td>{{ s.sarea }}</td>
-          <td>{{ s.sbi }}</td>
-          <td>{{ s.tot }}</td>
-          <td>{{ timeFormat(s.mday) }}</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 
   <!-- 頁籤 -->
-  <nav v-if="pagerEnd > 0">
-    <ul class="pagination">
-      <li @click.prevent="setPage(currentPage - 1)" class="page-item">
-        <a class="page-link" href>Previous</a>
-      </li>
-
-      <li v-for="i in pagerEnd" :class="{ active: i + pagerAddAmount === currentPage }" :key="i"
-        @click.prevent="setPage(i + pagerAddAmount)" class="page-item">
-        <a class="page-link" href>{{ i + pagerAddAmount }}</a>
-      </li>
-
-      <li @click.prevent="setPage(currentPage + 1)" class="page-item">
-        <a class="page-link" href>Next</a>
-      </li>
-    </ul>
-  </nav>
+  <Page :pagerEnd="pagerEnd" :currentPage="currentPage" :pagerAddAmount="pagerAddAmount" @setPage="setPage" />
 </template>
 
 <style lang="scss" scoped>
