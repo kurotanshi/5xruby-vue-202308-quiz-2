@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
+import Card from './component/Card.vue';
 
 // 試完成以下功能：
 //  1. 點擊卡片，卡片會翻開 (已完成)
@@ -10,6 +11,55 @@ import { ref } from 'vue';
 
 const cards = ref([]);
 const openedCard = ref([]);
+const openedCardCount = computed(()=> openedCard.value.length);
+const tempOpenedCard = ref([]);
+const tempOpenedCardIdx = ref([]);
+const matchedCard = ref([]);
+const isReset = ref(false);
+
+watch(
+  openedCardCount,
+  (newVal) => {
+    // 全部配對完成
+    if (newVal === cards.value.length) {
+      window.setTimeout(() => {
+        isReset.value = confirm('恭喜破關，再來一局');
+      }, 1000);
+    }
+
+    // 開啟數量為雙數
+    if (newVal % 2  === 0) {
+      const tempSet = [...new Set(tempOpenedCard.value)];
+      const isTempMatched = tempOpenedCard.value.length == 2 && tempSet.length == 1;
+
+      if (isTempMatched) {
+        // 配對成功
+        window.setTimeout(() => {
+          matchedCard.value.push(...tempOpenedCardIdx.value);
+          tempOpenedCard.value = [];
+          tempOpenedCardIdx.value =[];
+        }, 1600);
+
+      } else {
+        // 配對失敗
+        window.setTimeout(() => {
+          openedCard.value = openedCard.value.filter((e) => {
+            return tempOpenedCardIdx.value.indexOf(e) === -1;
+          })
+          tempOpenedCard.value = [];
+          tempOpenedCardIdx.value = [];
+        }, 1000);
+      }
+    }
+});
+
+watch(
+  () => isReset.value,
+  (newVal) => {
+    if (newVal) {
+      gameInit();
+    }
+});
 
 // 遊戲初始化，洗牌
 const gameInit = () => {
@@ -17,15 +67,28 @@ const gameInit = () => {
   numArr.sort(() => Math.random() - 0.5);
   cards.value = numArr.map(d => (d % 8) + 1);
   openedCard.value = [];
+  matchedCard.value = [];
 }
 
-const clickHandler = (idx) => {    
-  openedCard.value.push(idx);
-  
-  // 一秒後將 openedCard 清空 (牌面覆蓋回去)
-  window.setTimeout(() => {
-    openedCard.value = [];
-  }, 1000);
+const clickHandler = (idx, n) => {
+
+  if (tempOpenedCard.value.length < 2) {
+    openedCard.value.push(idx);
+    tempOpenedCard.value.push(n);
+    tempOpenedCardIdx.value.push(idx);
+  }
+
+  // 點擊相同的會關閉
+  if(tempOpenedCardIdx.value.length > 1 && tempOpenedCardIdx.value[0] === idx){
+    window.setTimeout(() => {
+      tempOpenedCard.value = [];
+      tempOpenedCardIdx.value = [];
+      openedCard.value = openedCard.value.filter((val)=>{
+        return val !== idx
+      })
+    }, 100);
+    return;
+  }
 }
 </script>
 
@@ -41,23 +104,15 @@ const clickHandler = (idx) => {
 
     <div class="rounded-xl mx-auto border-4 mt-12 grid grid-flow-col p-10 w-[900px] gap-2 grid-rows-4">
       
-      <div 
-        v-for="(n, idx) in cards"
-        class="flip-card"
-        :class="{
-          'open': openedCard.includes(idx)
-        }"
-        @click="clickHandler(idx)">
-        <div class="flip-card-inner" v-if="cards[idx] > 0">
-          <div class="flip-card-front"></div>
-          <div class="flip-card-back">
-            <img :src="`./img/cat-0${n}.jpg`" alt="">
-          </div>
-        </div>
-      </div>
+      <template v-if="cards.length > 0">
+        <Card v-for="(n, idx) in cards"
+          :cardNumber="n"
+          :isOpen="openedCard.includes(idx)"
+          :isVisible="cards[idx] > 0 && !matchedCard.includes(idx)"
+          @click="clickHandler(idx, n)"
+        />
+      </template>
 
     </div>
   </div>
 </template>
-
-<style scoped src="./MatchGame.css"></style>
