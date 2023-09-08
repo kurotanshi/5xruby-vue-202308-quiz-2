@@ -14,11 +14,14 @@ const props = defineProps({
 
 const emit = defineEmits(['update:currentPage']);
 
-// 頁碼最多顯示幾頁
+// 頁碼最多顯示幾格 (也可以寫成 props)
 const PAGINATION_MAX = 10;
 
+// 為了不用改寫原本的程式碼，所以用 computed 來包覆 props
 const totalPageCount = computed(() => props.totalPageCount);
 const currentPage = computed(() => props.currentPage);
+
+// 事件
 const setPage = val => emit('update:currentPage', val);
 
 // 分頁的尾端

@@ -17,7 +17,6 @@ const searchText = computed({
   get: () => props.searchText,
   set: val => emit('update:searchText', val),
 });
-
 </script>
 
 <template>

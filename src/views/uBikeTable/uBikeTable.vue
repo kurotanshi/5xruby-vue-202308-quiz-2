@@ -3,7 +3,6 @@ import { ref, computed, watch } from 'vue';
 import "bootstrap/dist/css/bootstrap.css";
 import '@fortawesome/fontawesome-free/css/all.css';
 
-
 // 修改這份 YouBike 即時資訊表：
 // 1. 將搜尋的部分拆出來變成子元件 `uBikeTable/components/search.vue`
 // 2. 將表格的部分拆出來變成子元件 `uBikeTable/components/uBikeTable.vue`
@@ -62,7 +61,7 @@ const slicedUbikeStops = computed(() => {
   return filtedUbikeStops.value.slice(start, end);
 });
 
-// 總頁數
+// 計算總頁數
 const totalPageCount = computed(() => {
   return Math.ceil(filtedUbikeStops.value.length / COUNT_OF_PAGE);
 });
