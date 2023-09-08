@@ -40,9 +40,9 @@ const clickHandler = (data) => {
         openedCard.value.splice(openedCard.value.length - 2, 2)
       }, 1000)
     } else {  
-      for (let i = 0; i < cards.value.length; i++) {
-        cards.value[i] = cards.value[i] === data.n ? 0 : cards.value[i]
-      }
+      cards.value = cards.value.map((v)=>{
+          return v = v=== data.n? 0 :v
+        })
     }
     firstOpenCard.value = 0
     secondOpenCard.value = 0
